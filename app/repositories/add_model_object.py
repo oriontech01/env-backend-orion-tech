@@ -88,37 +88,46 @@ async def object_add_model(request, username, db):
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
 
     for i in request.objects_data:
-        if i.comment_box == None:
+        r_comment_box= i.comment_box
+        r_type_of_sample= i.type_of_sample
+        r_time_of_sample= i.time_of_sample
+        r_date_of_sample= i.date_of_sample
+        r_salmonella= i.salmonella
+        r_apc= i.apc
+        r_listeria= i.listeria
+
+        if r_comment_box == "":
             r_comment_box= ""
         
-        if i.type_of_sample == None:
+        if r_type_of_sample == "":
             r_type_of_sample= ""
         
-        if i.time_of_sample == None:
+        if r_time_of_sample == "":
             r_time_of_sample= ""
         
-        if i.date_of_sample == None:
+        if r_date_of_sample == "":
             r_date_of_sample= ""
         
-        if i.salmonella == None:
+        if r_salmonella == "":
             r_salmonella= ""
         
-        if i.apc == None:
-            r_apc= ""
+        if r_apc == "":
+            r_apc= 0
         
-        if i.listeria == None:
+        if r_listeria == "":
             r_listeria= ""
 
-            
+        
+
         new_object_data= models.ObjectsData(
             object_name= i.object_name.title(), 
-            listeria= i.listeria, 
-            apc= i.apc, 
-            salmonella= i.salmonella, 
-            date_of_sample= i.date_of_sample,
-            time_of_sample= i.time_of_sample, 
-            type_of_sample= i.type_of_sample, 
-            comment_box= i.comment_box, 
+            listeria= r_listeria, 
+            apc= int(r_apc), 
+            salmonella= r_salmonella, 
+            date_of_sample= r_date_of_sample,
+            time_of_sample= r_time_of_sample, 
+            type_of_sample= r_type_of_sample, 
+            comment_box= r_comment_box, 
             id_model= request.id.title()
             )
         db.add(new_object_data)
