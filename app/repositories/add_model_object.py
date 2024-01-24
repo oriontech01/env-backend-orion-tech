@@ -19,36 +19,51 @@ async def add_model(request, picture_cover, model_object, username, db):
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
 
-    upload_picture_cover= await s3Bucket.s3_upload(picture_cover, request.id)
-    with zipfile.ZipFile(io.BytesIO(model_object.file.read()), 'r') as zip_ref:
-        # Create a temporary directory to extract files
-        temp_dir = f'./model'
-        os.makedirs(temp_dir, exist_ok=True)
 
-        # Extract all files from the zip archive
-        zip_ref.extractall(temp_dir)
 
-        model_folder_path = os.path.relpath(temp_dir)
-
-        upload_model= await s3Bucket.s3_upload_model(request.id, model_folder_path)
- 
-        # upload_model= await google_drive_upload.upload_folder_to_drive(model_folder_path, request.id)
-
-    # with zipfile.ZipFile(io.BytesIO(model_object.file.read()), 'r') as zip_ref:
-    #     # Upload each extracted file to S3 (example using boto3)
-
-    #     for file_info in zip_ref.infolist():
-    #         # Extract the file content into memory
-    #         file_content = zip_ref.read(file_info.filename)
-    #         # print(file_content)
 
     try:
-        shutil.rmtree(request.id)
-    except: pass
+        shutil.rmtree('model')
+    except: pass    
+
+    upload_picture_cover= await s3Bucket.s3_upload(picture_cover, request.id)
+
+    upload_model= None
+    if os.path.splitext(model_object.filename)[1] != ".zip":
+        upload_model= await s3Bucket.s3_upload_model_file_only(model_object, request.id)
+    else:
+        with zipfile.ZipFile(io.BytesIO(model_object.file.read()), 'r') as zip_ref:
+            # Create a temporary directory to extract files
+            temp_dir = f'./model'
+            os.makedirs(temp_dir, exist_ok=True)
+
+            # Extract all files from the zip archive
+            zip_ref.extractall(temp_dir)
+
+            model_folder_path = os.path.relpath(temp_dir)
+
+            upload_model= await s3Bucket.s3_upload_model(request.id, model_folder_path)
+    
+            # upload_model= await google_drive_upload.upload_folder_to_drive(model_folder_path, request.id)
+
+        # with zipfile.ZipFile(io.BytesIO(model_object.file.read()), 'r') as zip_ref:
+        #     # Upload each extracted file to S3 (example using boto3)
+
+        #     for file_info in zip_ref.infolist():
+        #         # Extract the file content into memory
+        #         file_content = zip_ref.read(file_info.filename)
+        #         # print(file_content)
+
+        try:
+            shutil.rmtree(request.id)
+        except: pass
+    
+    if (upload_model == None):
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not finalize the model file upload")
 
     # upload_model= '79136187963892hkfqd'
     # upload_picture_cover= 'dfkjdcd79136187963892hkfqd'
-    new_model= models.ModelObject(id= request.id.title(), 
+    new_model= models.ModelObject(id= request.id.upper(), 
                             description_model= request.description_model, 
                             file_model= upload_model, 
                             picture_cover= upload_picture_cover, 
@@ -60,7 +75,7 @@ async def add_model(request, picture_cover, model_object, username, db):
 
     for i in request.objects_data:
         new_object_data= models.ObjectsData(
-            object_name= i.object_name.title(), 
+            object_name= i.object_name, 
             listeria= i.listeria, 
             apc= i.apc, 
             salmonella= i.salmonella, 
@@ -68,7 +83,7 @@ async def add_model(request, picture_cover, model_object, username, db):
             time_of_sample= i.time_of_sample, 
             type_of_sample= i.type_of_sample, 
             comment_box= i.comment_box, 
-            id_model= request.id.title()
+            id_model= request.id.upper()
             )
         db.add(new_object_data)
         db.commit()
@@ -83,6 +98,14 @@ async def add_model(request, picture_cover, model_object, username, db):
 
 async def object_add_model(request, username, db):
     get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    check_db= db.query(models.ModelObject).filter(models.ModelObject.id == request.id)
+    if not check_db.first():
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Model with this name: '{request.id}' does not exist or has been deleted.")
+    
+    if (get_admin_id.first().role != "superuser"):
+        if check_db.first().users_id != get_admin_id.first().id:
+            raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail= f"Admin with this username: '{username}' can not perform this operation")
+
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
@@ -120,7 +143,8 @@ async def object_add_model(request, username, db):
         
 
         new_object_data= models.ObjectsData(
-            object_name= i.object_name.title(), 
+            # object_name= i.object_name.title(),
+            object_name= i.object_name, 
             listeria= r_listeria, 
             apc= int(r_apc), 
             salmonella= r_salmonella, 
@@ -128,7 +152,7 @@ async def object_add_model(request, username, db):
             time_of_sample= r_time_of_sample, 
             type_of_sample= r_type_of_sample, 
             comment_box= r_comment_box, 
-            id_model= request.id.title()
+            id_model= request.id
             )
         db.add(new_object_data)
         db.commit()

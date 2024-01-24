@@ -53,30 +53,30 @@ async def get_all_users(username, db):
 
     
     
+    return get_all_admins;
+    # object_to_json_list= []
+    # for i in get_all_admins:
+    #     bucket_folder_path= f'teacher/courses/{i.id}/cover_picture'
 
-    object_to_json_list= []
-    for i in get_all_admins:
-        bucket_folder_path= f'teacher/courses/{i.id}/cover_picture'
+    #     # object_to_json= schemas.CoursesTags.parse_obj(i)#TP MAKE THIS WORK, YOU WIL HAVE TO SET THE from orm TO TRUE IN THE SCHEMA MODEL CLASS CONFIG, SO THIS WILL THEN BE ABLE TO PARSE IN THE OBJECT
+    #     object_to_json= schemas.Users(
+    #         id= i.id,
+    #         activated= i.activated,
+    #         registration_date= i.registration_date,
+    #         username= i.username,
+    #         role= i.role,
+    #         user_models= i.user_models,
+    #     )
 
-        # object_to_json= schemas.CoursesTags.parse_obj(i)#TP MAKE THIS WORK, YOU WIL HAVE TO SET THE from orm TO TRUE IN THE SCHEMA MODEL CLASS CONFIG, SO THIS WILL THEN BE ABLE TO PARSE IN THE OBJECT
-        object_to_json= schemas.Users(
-            id= i.id,
-            activated= i.activated,
-            registration_date= i.registration_date,
-            username= i.username,
-            role= i.role,
-            user_models= i.user_models,
-        )
+    #     for i2 in object_to_json.user_models:
+    #         get_preferred_link= await s3Bucket.s3_get_presigned_link(i2.picture_cover)
+    #         i2.picture_cover= get_preferred_link
 
-        for i2 in object_to_json.user_models:
-            get_preferred_link= await s3Bucket.s3_get_presigned_link(i2.picture_cover)
-            i2.picture_cover= get_preferred_link
+    #         get_preferred_link= await s3Bucket.s3_get_presigned_link(i2.file_model)
+    #         i2.file_model= get_preferred_link
 
-            get_preferred_link= await s3Bucket.s3_get_presigned_link(i2.file_model)
-            i2.file_model= get_preferred_link
-
-        object_to_json_list.append(object_to_json)
-    return (object_to_json_list)
+    #     object_to_json_list.append(object_to_json)
+    # return (object_to_json_list)
 
 
 

@@ -39,6 +39,7 @@ def id_folder_split(id):
 
 
 UPLOAD_DIR= os.path.join("app/media")
+file_extensions= [".gltf", ".glb", ".fbx", ".stl", ".obj", ".dae", ".ifc"]
 async def s3_upload_model(folder_id, folder_path):
     try:
         model_name_and_path= None
@@ -51,12 +52,14 @@ async def s3_upload_model(folder_id, folder_path):
                 filename_and_path= f"{folder_id}/{local_file_path}"
                 filename_and_path= filename_and_path.replace('\\', '/')
                 # print(filename_and_path)
+                logger.info(f"Uploading {local_file_path} to s3")
                 s3_client.upload_file(local_file_path, S3_BUCKET_NAME, filename_and_path)
-                if os.path.splitext(filename_and_path.split('\\')[0])[1] == ".gltf":
+                if os.path.splitext(filename_and_path.split('\\')[0])[1] in file_extensions:
                     model_name_and_path= filename_and_path
 
         if model_name_and_path:
-            return model_name_and_path
+            aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{model_name_and_path}"
+            return aws_access_link
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Could not upload model file, something went wrong, also make sure you have good internet connection.")
  
@@ -64,6 +67,21 @@ async def s3_upload_model(folder_id, folder_path):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Could not upload model file, something went wrong, also make sure you have good internet connection.")
 
 
+
+
+async def s3_upload_model_file_only(file, bucket_folder_path):
+        s3_client.put_object(Bucket= S3_BUCKET_NAME, Key=f"{bucket_folder_path}/")
+
+        bucket_folder_path= f"{bucket_folder_path}/model_file"
+        filename= file.filename
+
+        filename_and_path= f"{bucket_folder_path}/{filename}"
+
+        logger.info(f"Uploading {filename_and_path} to s3")
+        bucket.upload_fileobj(file, f"{filename_and_path}")
+
+        aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{filename_and_path}"
+        return aws_access_link
 
 
 
@@ -101,7 +119,9 @@ async def s3_upload(file, bucket_folder_path):
             # Clean up the temporary and compressed images
             os.remove(save_filename)
             os.remove("compressed_img.webp")
-            return f"{filename_and_path}"
+
+            aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{filename_and_path}"
+            return aws_access_link
     # try:
 
 
