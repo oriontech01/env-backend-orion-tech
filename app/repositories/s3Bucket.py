@@ -77,7 +77,7 @@ async def s3_upload_model_file_only(file, bucket_folder_path):
         filename_and_path= f"{bucket_folder_path}/{filename}"
 
         logger.info(f"Uploading {filename_and_path} to s3")
-        bucket.upload_fileobj(file, f"{filename_and_path}")
+        bucket.upload_fileobj(file.file, f"{filename_and_path}")
 
         aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{filename_and_path}"
         return aws_access_link
