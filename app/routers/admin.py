@@ -37,8 +37,13 @@ async def auto_create_admin( db: Session= Depends(get_db)):
 
 @router.get('/manual_verify_user',status_code= status.HTTP_200_OK)
 def manual_verify(db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
-    if db.query(models.Users).filter(models.Users.username == current_user.username).first() == None:
+    user_instance= db.query(models.Users).filter(models.Users.username == current_user.username)
+    print(user_instance.first())
+    print(current_user.username)
+    if user_instance.first() == None:
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED)
+    
+    return user_instance.first().role
 
 
 @router.post('/register', status_code= status.HTTP_201_CREATED)

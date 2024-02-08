@@ -14,7 +14,12 @@ get_db= database.get_database
 
 
 @router.get('/get-all-models', response_model= list[schemas.HomeModelObjects], status_code= status.HTTP_200_OK)
-async def get_all_models(db: Session= Depends(get_db)):
+async def get_all_models(db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+    get_user= db.query(models.Users).filter(models.Users.username== current_user.username.lower())
+
+    if not get_user.first():
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
+    
     return db.query(models.ModelObject).all()
 
     # object_to_json_list= []
@@ -45,8 +50,18 @@ async def get_all_models(db: Session= Depends(get_db)):
 
 
 @router.get('/get-a-model/{model_id}', response_model= schemas.HomeModelObjects, status_code= status.HTTP_200_OK)
-async def get_a_models(model_id: str, db: Session= Depends(get_db)):
-    return db.query(models.ModelObject).filter(models.ModelObject.id == model_id).first();
+async def get_a_models(model_id: str, db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+
+    get_user= db.query(models.Users).filter(models.Users.username== current_user.username.lower())
+
+    if not get_user.first():
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
+
+    get_model_object= db.query(models.ModelObject).filter(models.ModelObject.id == model_id)
+
+    if not get_model_object.first():
+                raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail="Model with this id does not exist or has been deleted")
+    return get_model_object.first();
 
 
     # # object_to_json= schemas.CoursesTags.parse_obj(i)#TP MAKE THIS WORK, YOU WIL HAVE TO SET THE from orm TO TRUE IN THE SCHEMA MODEL CLASS CONFIG, SO THIS WILL THEN BE ABLE TO PARSE IN THE OBJECT

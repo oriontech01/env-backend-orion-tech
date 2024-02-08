@@ -9,6 +9,7 @@ class TokenDataUser(BaseModel):
 
 class SignUp(BaseModel):
     username: str
+    role: str
     password: str
 
 

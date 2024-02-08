@@ -14,10 +14,13 @@ load_dotenv()
 
 
 async def add_model(request, picture_cover, model_object, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
 
     if not get_admin_id.first():
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This account does not exist or has been deactivated")
 
 
 
@@ -97,14 +100,17 @@ async def add_model(request, picture_cover, model_object, username, db):
 
 
 async def object_add_model(request, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
+
     check_db= db.query(models.ModelObject).filter(models.ModelObject.id == request.id)
     if not check_db.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Model with this name: '{request.id}' does not exist or has been deleted.")
     
-    if (get_admin_id.first().role != "superuser"):
-        if check_db.first().users_id != get_admin_id.first().id:
-            raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail= f"Admin with this username: '{username}' can not perform this operation")
+    if (get_admin_id.first().role == "admin" and check_db.first().users_id != get_admin_id.first().id):
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail= f"Admin with this username: '{username.lower()}' can not perform this operation")
 
 
     if not get_admin_id.first():
@@ -163,7 +169,10 @@ async def object_add_model(request, username, db):
 
 
 async def update_model_super_admin(request, picture_cover, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This account does not exist or has been deactivated")
@@ -207,7 +216,10 @@ async def update_model_super_admin(request, picture_cover, username, db):
 
 
 async def update_model_admin(request, picture_cover, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This account does not exist or has been deactivated")
@@ -255,19 +267,19 @@ async def update_model_admin(request, picture_cover, username, db):
 
 
 async def delete_model_super_admin(id_list, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account has been removed")
     
-    if get_admin_id.first().role == "admin":
+    if get_admin_id.first().role == "admin" or get_admin_id.first().role == "user":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
     
     if get_admin_id.first().activated == "false":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="Your account was deactivated, please send us mail in the contact centre to access your account")
     
     if not get_admin_id.first().id:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username}' does not exist or has been removed")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username.lower()}' does not exist or has been removed")
     
 
     for id in id_list:
@@ -288,19 +300,20 @@ async def delete_model_super_admin(id_list, username, db):
 
 
 async def delete_object_super_admin(id_list, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account has been removed")
     
-    if get_admin_id.first().role == "admin":
+    if get_admin_id.first().role == "admin" or get_admin_id.first().role == "user":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
     
     if get_admin_id.first().activated == "false":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="Your account was deactivated, please send us mail in the contact centre to access your account")
     
     if not get_admin_id.first().id:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username}' does not exist or has been removed")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username.lower()}' does not exist or has been removed")
     
 
     for id in id_list:
@@ -316,7 +329,10 @@ async def delete_object_super_admin(id_list, username, db):
 
 
 async def delete_model_admin(id_list, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account has been removed")
@@ -325,7 +341,7 @@ async def delete_model_admin(id_list, username, db):
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="Your account was deactivated, please send us mail in the contact centre to access your account")
     
     if not get_admin_id.first().id:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username}' does not exist or has been removed")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username.lower()}' does not exist or has been removed")
     
     models_= db.query(models.ModelObject).filter(models.ModelObject.users_id== get_admin_id.first().id).filter(models.ModelObject.id== id)
     if not models_.first():
@@ -348,7 +364,10 @@ async def delete_model_admin(id_list, username, db):
 
 
 async def delete_object_admin(id_list, username, db):
-    get_admin_id= db.query(models.Users).filter(models.Users.username==username)
+    get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
+
+    if get_admin_id.first().role == "user":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account has been removed")
@@ -357,7 +376,7 @@ async def delete_object_admin(id_list, username, db):
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="Your account was deactivated, please send us mail in the contact centre to access your account")
     
     if not get_admin_id.first().id:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username}' does not exist or has been removed")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username.lower()}' does not exist or has been removed")
     
     for id in id_list:
         object_data= db.query(models.ObjectsData).filter(models.ObjectsData.id== id)
