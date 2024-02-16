@@ -55,6 +55,6 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         script: |
           sudo chmod 666 /var/run/docker.sock
-          cd env-backend-orion-tech
+          cd env-backend-orion-tech/
           git pull origin main
           docker-compose up -d
