@@ -10,6 +10,7 @@ class Users(Base):
     username= Column(String, unique=True)
     role= Column(String)
     password= Column(String)
+    profile_picture= Column(String, default=None)
     registration_date= Column(String, default= time.strftime("%Y%m%d-%H%M%S"))
     
     user_models= relationship("ModelObject", back_populates="users")

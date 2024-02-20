@@ -56,7 +56,7 @@ async def s3_upload_model(folder_id, folder_path):
                     model_name_and_path= filename_and_path
 
         if model_name_and_path:
-            aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{model_name_and_path}"
+            aws_access_link= f"https://emp-bucket-new.s3.amazonaws.com/{model_name_and_path}"
             return aws_access_link
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Could not upload model file, something went wrong, also make sure you have good internet connection.")
@@ -78,10 +78,51 @@ async def s3_upload_model_file_only(file, bucket_folder_path):
         logger.info(f"Uploading {filename_and_path} to s3")
         bucket.upload_fileobj(file.file, f"{filename_and_path}")
 
-        aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{filename_and_path}"
+        aws_access_link= f"https://emp-bucket-new.s3.amazonaws.com/{filename_and_path}"
         return aws_access_link
 
 
+
+
+
+
+
+
+
+async def s3_upload_profile_picture(file, bucket_folder_path):
+        s3_client.put_object(Bucket= S3_BUCKET_NAME, Key=f"profile_picture/{bucket_folder_path}/")
+
+        filename= await file_names_processing.names_process(file)
+        logger.info(f"Uploading {file.filename} to s3")
+
+
+        filename_and_path= f"profile_picture/{bucket_folder_path}/{os.path.splitext(filename)[0]}.webp"
+        #++++++IMAGE COMPRESSING BEFORE UPLOAD++++++++
+        # Save the uploaded image to a temporary file
+        save_filename= filename
+        with open(save_filename, "wb") as image_file:
+            image_file.write(file.file.read())
+
+        # Compress the image to medium quality
+        # img = Image.open(filename).convert("RGB")
+        img = Image.open(save_filename)
+        try:
+            img= ImageOps.exif_transpose(img)
+        except:
+            pass
+        img.save("compressed_img.webp", format="webp", quality=15)
+
+        with open("compressed_img.webp", "rb") as file_c:
+            file= file_c
+            
+            bucket.upload_fileobj(file, f"{filename_and_path}")
+            #uploaded_file_url= f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{filename_and_path}" 
+            # Clean up the temporary and compressed images
+            os.remove(save_filename)
+            os.remove("compressed_img.webp")
+
+            aws_access_link= f"https://emp-bucket-new.s3.amazonaws.com/{filename_and_path}"
+            return aws_access_link
 
 
 
@@ -118,7 +159,7 @@ async def s3_upload(file, bucket_folder_path):
             os.remove(save_filename)
             os.remove("compressed_img.webp")
 
-            aws_access_link= f"https://environmental-mapping-bucket-new.s3.amazonaws.com/{filename_and_path}"
+            aws_access_link= f"https://emp-bucket-new.s3.amazonaws.com/{filename_and_path}"
             return aws_access_link
     # try:
 

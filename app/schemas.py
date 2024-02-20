@@ -86,6 +86,7 @@ class Users(BaseModel):
     registration_date: str
     username: str
     role: str
+    profile_picture: Optional[str]= None
 
     user_models: List[ModelObjectUser]
     
