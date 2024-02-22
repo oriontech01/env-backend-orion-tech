@@ -9,16 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-async def admin_sign_up(picture_cover, request, username, db):
+async def admin_sign_up(request, username, db):
     get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
-
-    role= "reviewer"
-    if request.role == "Reviewer":
-        role= "user"
-    
-    if request.role == "Tagger":
-        role= "admin"
-
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
@@ -31,13 +23,9 @@ async def admin_sign_up(picture_cover, request, username, db):
     if db.query(models.Users).filter(models.Users.username==request.username.lower()).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="this username is already taken")
     
-
-    upload_picture_cover= await s3Bucket.s3_upload_profile_picture(picture_cover, request.username.lower())
-    
     new_user= models.Users(username=request.username.lower(),
-                          role= role,
-                          password= Hash.enc(request.password),
-                          profile_picture= upload_picture_cover
+                          role= request.role,
+                          password= Hash.enc(request.password)
                           )
     db.add(new_user)
     db.commit()
@@ -49,7 +37,7 @@ async def admin_sign_up(picture_cover, request, username, db):
 async def get_all_users(username, db):
     get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
 
-    get_all_admins= db.query(models.Users).filter(models.Users.role != "superuser").all()
+    get_all_admins= db.query(models.Users).all()
 
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account does not exist or has been removed")
@@ -168,7 +156,7 @@ async def toggle_activation(db, username):
 
 
 
-async def delete_admin(ids, username, db):
+async def delete_admin(id, username, db):
     get_admin_id= db.query(models.Users).filter(models.Users.username==username.lower())
 
     if not get_admin_id.first():
@@ -183,12 +171,11 @@ async def delete_admin(ids, username, db):
     if not get_admin_id.first().id:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this username: '{username.lower()}' does not exist or has been removed")
     
-    for id in ids:
-        admin= db.query(models.Users).filter(models.Users.id== id)
-        if admin.first().id == get_admin_id.first().id:
-            raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= "Super Admin can not be deleted")
-        if not admin.first():
-            raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this id: '{id}' does not exist or has been removed")
+    admin= db.query(models.Users).filter(models.Users.id== id)
+    if admin.first().id == get_admin_id.first().id:
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= "Super Admin can not be deleted")
+    if not admin.first():
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Admin with this id: '{id}' does not exist or has been removed")
 
-        admin.delete(synchronize_session= False)
-        db.commit()
+    admin.delete(synchronize_session= False)
+    db.commit()
