@@ -76,21 +76,21 @@ async def add_model(request, picture_cover, model_object, username, db):
     db.commit()
     db.refresh(new_model)
 
-    for i in request.objects_data:
-        new_object_data= models.ObjectsData(
-            object_name= i.object_name, 
-            listeria= i.listeria, 
-            apc= i.apc, 
-            salmonella= i.salmonella, 
-            date_of_sample= i.date_of_sample,
-            time_of_sample= i.time_of_sample, 
-            type_of_sample= i.type_of_sample, 
-            comment_box= i.comment_box, 
-            id_model= request.id.upper()
-            )
-        db.add(new_object_data)
-        db.commit()
-        db.refresh(new_object_data)
+    # for i in request.objects_data:
+    #     new_object_data= models.ObjectsData(
+    #         object_name= i.object_name, 
+    #         listeria= i.listeria, 
+    #         apc= i.apc, 
+    #         salmonella= i.salmonella, 
+    #         date_of_sample= i.date_of_sample,
+    #         time_of_sample= i.time_of_sample, 
+    #         type_of_sample= i.type_of_sample, 
+    #         comment_box= i.comment_box, 
+    #         id_model= request.id.upper()
+    #         )
+    #     db.add(new_object_data)
+    #     db.commit()
+    #     db.refresh(new_object_data)
     
     return Response(status_code=status.HTTP_201_CREATED)
 

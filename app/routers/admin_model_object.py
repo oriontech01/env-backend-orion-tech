@@ -23,11 +23,13 @@ ROLE=  os.getenv('ADMIN_ROLE') ,
 # async def add_model2(current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
 #     print(current_user.username)
 
+# request_body: Annotated[Union[str, None], Query()]= None
+
 @router.post('/add-model', status_code= status.HTTP_201_CREATED)
-async def add_model(picture_cover: UploadFile= File, model_object: UploadFile= File, request_body: Annotated[Union[str, None], Query()]= None,  db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
-    request_to_json= schemas.ModelObjectForm.model_validate_json(request_body)
+async def add_model(picture_cover: UploadFile= File, model_object: UploadFile= File, request_body: schemas.ModelObjectFormModfied= Depends(),  db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+    # request_to_json= schemas.ModelObjectFormModfied.model_validate_json(request_body)
     
-    return await add_model_object.add_model(request_to_json, picture_cover, model_object, current_user.username, db)
+    return await add_model_object.add_model(request_body, picture_cover, model_object, current_user.username, db)
 
 
 

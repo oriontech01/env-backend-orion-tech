@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, Query, File
 from .. import schemas, database, oauth2, models
 from sqlalchemy.orm import Session
 from ..repositories import admin
 from . import authentication
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import List
+from typing import List, Union, Annotated
 
 import os
 from dotenv import load_dotenv
@@ -46,9 +46,25 @@ def manual_verify(db: Session= Depends(get_db), current_user: schemas.SignUp= De
     return user_instance.first().role
 
 
+# {
+#   "username": "string",
+#   "role": "string",
+#   "password": "string"
+# }
+
+
+# request_body: Annotated[Union[str, None], Query()]= None
 @router.post('/register', status_code= status.HTTP_201_CREATED)
-async def admin_sign_up(request: schemas.SignUp, db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
-    return await admin.admin_sign_up(request, current_user.username, db)
+async def admin_sign_up(picture_cover: UploadFile, request_body: schemas.SignUp= Depends(), db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+    # request_to_json= schemas.SignUp.model_validate_json(request_body)
+
+    return await admin.admin_sign_up(picture_cover, request_body, current_user.username, db)
+
+
+@router.put('/update-user-role', status_code= status.HTTP_201_CREATED)
+async def admin_update_role(request: schemas.RoleUpdate, db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+    return await admin.admin_update_role(request, current_user.username, db)
+
 
 @router.get('/get-all-users', response_model= list[schemas.Users], status_code= status.HTTP_200_OK)
 async def get_all_users(db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
@@ -68,5 +84,5 @@ async def toggle_activation(db: Session= Depends(get_db), current_user: schemas.
 
 
 @router.delete('/delete-admin', status_code= status.HTTP_200_OK)
-async def delete_admin(id: int, db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
+async def delete_admin(id: List[int], db: Session= Depends(get_db), current_user: schemas.SignUp= Depends(oauth2.get_current_user)):
     return await admin.delete_admin(id, current_user.username, db)

@@ -10,6 +10,7 @@ class Users(Base):
     username= Column(String, unique=True)
     role= Column(String)
     password= Column(String)
+    profile_picture= Column(String, default=None)
     registration_date= Column(String, default= time.strftime("%Y%m%d-%H%M%S"))
     
     user_models= relationship("ModelObject", back_populates="users")
@@ -31,7 +32,8 @@ class ModelObject(Base):
 
 class ObjectsData(Base):
     __tablename__= "objects_data"
-    # date_and_time_of_sample= Column(String, default= time.strftime("%Y%m%d-%H%M%S"))
+    # name_of_tagger= Column(String)
+    # location
     id= Column(Integer, primary_key=True, index= True)
     object_name= Column(String)
     listeria= Column(String)

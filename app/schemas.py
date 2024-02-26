@@ -13,6 +13,11 @@ class SignUp(BaseModel):
     password: str
 
 
+class RoleUpdate(BaseModel):
+    id: int
+    role: str
+
+
 
 class ModelObjectBase(BaseModel):
     date_and_time_of_sample: str
@@ -46,6 +51,16 @@ class ObjectsData(BaseModel):
 
 
 
+class UsersBase(BaseModel):
+    id: int
+    activated: str
+    registration_date: str
+    username: str
+    
+    class Config():
+        from_attributes= True
+
+
 class HomeModelObjects(BaseModel):
     date_and_time_of_sample: str
     id: str
@@ -54,16 +69,8 @@ class HomeModelObjects(BaseModel):
     picture_cover: str
     objects_relationship: List[ObjectsData]
 
-    class Config():
-        from_attributes= True
+    users: UsersBase
 
-
-class UsersBase(BaseModel):
-    id: int
-    activated: str
-    registration_date: str
-    username: str
-    
     class Config():
         from_attributes= True
 
@@ -86,6 +93,7 @@ class Users(BaseModel):
     registration_date: str
     username: str
     role: str
+    profile_picture: Optional[str]= None
 
     user_models: List[ModelObjectUser]
     
@@ -114,6 +122,14 @@ class ModelObjectForm(BaseModel):
     id: str
     description_model: str
     objects_data: List[ObjectsDataForm]= None
+
+    class Config():
+        from_attributes= True
+
+
+class ModelObjectFormModfied(BaseModel):   
+    id: str
+    description_model: str
 
     class Config():
         from_attributes= True
