@@ -109,12 +109,12 @@ async def object_add_model(request, username, db):
     if not check_db.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Model with this name: '{request.id}' does not exist or has been deleted.")
     
-    if (get_admin_id.first().role == "admin" and check_db.first().users_id != get_admin_id.first().id):
-        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail= f"Admin with this username: '{username.lower()}' can not perform this operation")
+    # if (get_admin_id.first().role != "super_user" and check_db.first().users_id != get_admin_id.first().id):
+    #     raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail= f"Admin with this username: '{username.lower()}' can not perform this operation")
 
 
     if not get_admin_id.first():
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This acoount does not exist or has been deactivated")
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"This account does not exist or has been deactivated")
 
     for i in request.objects_data:
         r_comment_box= i.comment_box
@@ -272,7 +272,7 @@ async def delete_model_super_admin(id_list, username, db):
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account has been removed")
     
-    if get_admin_id.first().role == "admin" or get_admin_id.first().role == "user":
+    if get_admin_id.first().role == "user":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
     
     if get_admin_id.first().activated == "false":
@@ -284,6 +284,11 @@ async def delete_model_super_admin(id_list, username, db):
 
     for id in id_list:
         models_= db.query(models.ModelObject).filter(models.ModelObject.id== id)
+
+        if get_admin_id.first().role != "superuser" :
+            raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to perform this operation")
+    
+
         if not models_.first():
             raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Model with this id: '{id}' does not exist or has been removed")
 

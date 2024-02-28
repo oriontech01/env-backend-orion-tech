@@ -129,15 +129,15 @@ async def get_user(username, db):
     if not get_admin_id.first():
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Your account does not exist or has been removed")
     
-    if get_admin_id.first().role == "user":
-        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to view this content")
-    
     if get_admin_id.first().activated == "false":
         raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="Your account was deactivated, please send us mail in the contact centre to access your account")
     
     if not get_admin_id.first().id:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"Students with this username: '{username.lower()}' does not exist or has been removed")
 
+    if get_admin_id.first().username != username and get_admin_id.first().role != "superuser":
+        raise HTTPException(status_code= status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to view this content")
+    
     return get_admin_id.first()
 
 
