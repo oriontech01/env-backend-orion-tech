@@ -2,9 +2,9 @@ name: CI/CD Pipeline EMP-BE
 
 on:
   push:
-    branches: [ main ]
+    branches: [ development ]
   pull_request:
-    branches: [ main ]
+    branches: [ development ]
 
 jobs:
   test:
@@ -50,11 +50,12 @@ jobs:
     - name: Deploy to Ec2 Instance
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.HOST }}
+        host: ${{ secrets.HOST_DEV }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.PRIVATE_KEY }}
         script: |
           sudo chmod 666 /var/run/docker.sock
           cd env-backend-orion-tech/
-          git pull origin main
+          git checkout development
+          git pull origin development
           docker-compose up --build -d
