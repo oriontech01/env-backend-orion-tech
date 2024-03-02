@@ -56,5 +56,6 @@ jobs:
         script: |
           sudo chmod 666 /var/run/docker.sock
           cd env-backend-orion-tech/
+          git checkout main
           git pull origin main
           docker-compose up --build -d
